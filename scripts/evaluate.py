@@ -37,7 +37,7 @@ def main() -> None:
     if eval_df.empty:
         print(
             "No human labels found in data/labeled/eval_set.csv - nothing to evaluate.\n"
-            "Label reviews in the Labeling Studio first (app/pages/4_Labeling_Studio.py), "
+            "Label reviews in the Labeling Studio first (app/pages/4_🏷_Labeling_Studio.py), "
             "then re-run this script. Refusing to fabricate results."
         )
         return

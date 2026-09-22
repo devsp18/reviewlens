@@ -13,8 +13,10 @@ REQUIRED_CSV_COLUMNS = ["text", "rating"]
 
 
 def clean_text(text: str) -> str:
-    """Normalize whitespace and turn emoji into readable text (e.g. crashes 😡 -> crashes :enraged_face:)."""
-    text = emoji.demojize(str(text))
+    """Normalize whitespace and turn emoji into readable text (e.g. crashes 😡 -> crashes :enraged_face:).
+    Padded delimiters keep back-to-back emoji (😀👍 -> :grinning_face: :thumbs_up:) from fusing
+    into one unreadable token - the whitespace normalization below then collapses the padding."""
+    text = emoji.demojize(str(text), delimiters=(" :", ": "))
     return " ".join(text.split()).strip()
 
 

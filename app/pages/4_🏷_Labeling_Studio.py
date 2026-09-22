@@ -66,9 +66,9 @@ if mode == "Label Reviews":
 
     st.write("**Theme** (press 1-9 for the first nine, 0 for the tenth)")
     theme_keys = [str(i) for i in range(1, 10)] + ["0"]
-    cols = st.columns(5)
+    cols = st.columns(3)
     for i, theme in enumerate(THEME_VALUES):
-        with cols[i % 5]:
+        with cols[i % 3]:
             selected = st.session_state["pending_theme"] == theme
             if shortcut_button(
                 theme, shortcut=theme_keys[i], key=f"theme_{theme}",

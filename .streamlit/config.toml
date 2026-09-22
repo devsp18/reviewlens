@@ -1,3 +1,47 @@
 [theme]
-base = "light"
 primaryColor = "#4F46E5"
+violetColor = "#8B5CF6"
+greenColor = "#10B981"
+grayColor = "#64748B"
+redColor = "#F43F5E"
+
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+codeFont = "JetBrains Mono:https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+
+baseRadius = "16px"
+buttonRadius = "16px"
+showWidgetBorder = true
+
+chartCategoricalColors = [
+    "#4F46E5", # indigo
+    "#8B5CF6", # violet
+    "#10B981", # emerald
+    "#F43F5E", # rose
+    "#F59E0B", # amber
+    "#0EA5E9", # sky
+    "#64748B", # slate
+    "#D946EF", # fuchsia
+    "#14B8A6", # teal
+    "#F97316", # orange
+]
+
+[theme.light]
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F8FAFC"
+textColor = "#0F172A"
+borderColor = "#E2E8F0"
+
+[theme.dark]
+backgroundColor = "#0B0F19"
+secondaryBackgroundColor = "#151B2B"
+textColor = "#E2E8F0"
+borderColor = "#1E293B"
+
+[theme.light.sidebar]
+backgroundColor = "#F8FAFC"
+
+[theme.dark.sidebar]
+backgroundColor = "#0F1420"
+
+[client]
+toolbarMode = "minimal"
