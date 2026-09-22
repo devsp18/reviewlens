@@ -69,11 +69,11 @@ if unclassified_count < len(app_reviews):
         theme_counts.columns = ["theme", "count"]
         fig = px.bar(theme_counts, x="count", y="theme", orientation="h", color="theme")
         fig.update_layout(showlegend=False, yaxis={"categoryorder": "total ascending"})
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     with tab2:
         sentiment_counts = classified_rows["sentiment"].value_counts().reset_index()
         sentiment_counts.columns = ["sentiment", "count"]
         fig = px.pie(sentiment_counts, names="sentiment", values="count", hole=0.5)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 else:
     st.info("Run classification above to see theme and sentiment breakdowns.")
