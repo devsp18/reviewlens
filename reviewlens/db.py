@@ -1,5 +1,6 @@
 """SQLite schema and access helpers for reviews, classifications, and the LLM cache."""
 
+import json
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -35,6 +36,15 @@ CREATE TABLE IF NOT EXISTS classifications (
     sentiment TEXT,
     severity INTEGER,
     raw_response TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(review_id, prompt_version)
+);
+
+CREATE TABLE IF NOT EXISTS retrievals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    review_id INTEGER NOT NULL REFERENCES reviews(id),
+    prompt_version TEXT NOT NULL,
+    retrieved_examples TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(review_id, prompt_version)
 );
@@ -95,3 +105,16 @@ def sample_reviews(n: int = 5, db_path: Path | None = None) -> pd.DataFrame:
 def all_reviews(db_path: Path | None = None) -> pd.DataFrame:
     with get_connection(db_path) as conn:
         return pd.read_sql("SELECT * FROM reviews", conn)
+
+
+def store_retrievals(records: list[dict], prompt_version: str, db_path: Path | None = None) -> None:
+    """records: [{'review_id': int, 'examples': [...]}] - examples are JSON-serialized as-is."""
+    if not records:
+        return
+    with get_connection(db_path) as conn:
+        conn.executemany(
+            """INSERT OR REPLACE INTO retrievals (review_id, prompt_version, retrieved_examples)
+               VALUES (?, ?, ?)""",
+            [(r["review_id"], prompt_version, json.dumps(r["examples"])) for r in records],
+        )
+        conn.commit()

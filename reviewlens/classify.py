@@ -84,12 +84,21 @@ def classify_reviews(
     prompt_version: str,
     db_path=None,
     progress_callback: Callable[[int, int], None] | None = None,
+    retriever: Callable[[str], list[dict]] | None = None,
 ) -> pd.DataFrame:
     """Classify reviews (needs columns: id, cleaned_text) with the given prompt version.
 
     Cached per-review by hash(prompt_version + text), so re-running is free for
     anything already classified. Returns review_id, theme, sentiment, severity.
+
+    v3 requires `retriever(text) -> list[{text, theme, sentiment}]` (see
+    reviewlens.rag) to fetch its few-shot examples; the cache key doesn't
+    encode which examples were retrieved, so only reuse a v3 cache within a
+    single, consistent retrieval context (e.g. one evaluation run).
     """
+    if prompt_version == "v3" and retriever is None:
+        raise ValueError("prompt v3 requires a retriever callable (see reviewlens.rag)")
+
     prompts_module = importlib.import_module(f"reviewlens.prompts.{prompt_version}")
 
     results: list[dict] = []
@@ -108,7 +117,15 @@ def classify_reviews(
         nonlocal pending_ids, pending_texts
         if not pending_texts:
             return
-        prompt = prompts_module.build_prompt(pending_texts)
+        if prompt_version == "v3":
+            examples = [retriever(t) for t in pending_texts]
+            prompt = prompts_module.build_prompt(pending_texts, examples)
+            db.store_retrievals(
+                [{"review_id": rid, "examples": ex} for rid, ex in zip(pending_ids, examples)],
+                prompt_version, db_path,
+            )
+        else:
+            prompt = prompts_module.build_prompt(pending_texts)
         batch_result = _call_gemini(prompt)
         by_index = {c.review_index: c for c in batch_result.classifications}
 
