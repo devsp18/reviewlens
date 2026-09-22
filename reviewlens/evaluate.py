@@ -35,7 +35,10 @@ def _v3_retriever_factory(labeled_pool: pd.DataFrame, held_out_ids: set[int], pe
     rag_df = labeled_pool.rename(columns={"true_theme": "theme", "true_sentiment": "sentiment"})
     rag_df = rag_df.rename(columns={"cleaned_text": "text", "id": "review_id"})
     collection = build_index(
-        rag_df, collection_name="eval_v3", exclude_review_ids=held_out_ids, persist_dir=persist_dir,
+        rag_df,
+        collection_name="eval_v3",
+        exclude_review_ids=held_out_ids,
+        persist_dir=persist_dir,
     )
 
     def retriever(text: str) -> list[dict]:
@@ -61,9 +64,7 @@ def evaluate_prompt_version(prompt_version: str, eval_df: pd.DataFrame, db_path=
 
     merged = eval_df.merge(predictions, left_on="id", right_on="review_id")
 
-    theme_report = classification_report(
-        merged["true_theme"], merged["theme"], output_dict=True, zero_division=0
-    )
+    theme_report = classification_report(merged["true_theme"], merged["theme"], output_dict=True, zero_division=0)
     sentiment_report = classification_report(
         merged["true_sentiment"], merged["sentiment"], output_dict=True, zero_division=0
     )
@@ -89,9 +90,17 @@ def evaluate_prompt_version(prompt_version: str, eval_df: pd.DataFrame, db_path=
             merged["true_sentiment"], merged["sentiment"], labels=sentiment_labels
         ).tolist(),
         "sentiment_labels": sentiment_labels,
-        "misclassified_examples": misclassified[[
-            "id", "cleaned_text", "true_theme", "theme", "true_sentiment", "sentiment", "reasoning",
-        ]].to_dict("records"),
+        "misclassified_examples": misclassified[
+            [
+                "id",
+                "cleaned_text",
+                "true_theme",
+                "theme",
+                "true_sentiment",
+                "sentiment",
+                "reasoning",
+            ]
+        ].to_dict("records"),
     }
 
 
@@ -120,10 +129,16 @@ def evaluate_pm_agreement(rankings_path: Path = labeling.PM_RANKINGS_PATH) -> di
                 top5_a = set(a.nsmallest(5).index)
                 top5_b = set(b.nsmallest(5).index)
                 overlap = len(top5_a & top5_b) / max(1, len(top5_a | top5_b))
-                pairs.append({
-                    "reviewer_a": r1, "reviewer_b": r2, "n_common_pain_points": len(common),
-                    "spearman_rho": rho, "spearman_pvalue": pval, "top5_jaccard_overlap": overlap,
-                })
+                pairs.append(
+                    {
+                        "reviewer_a": r1,
+                        "reviewer_b": r2,
+                        "n_common_pain_points": len(common),
+                        "spearman_rho": rho,
+                        "spearman_pvalue": pval,
+                        "top5_jaccard_overlap": overlap,
+                    }
+                )
         if pairs:
             results[app_id] = pairs
 

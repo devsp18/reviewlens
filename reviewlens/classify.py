@@ -110,8 +110,9 @@ def classify_reviews(
             examples = [retriever(t) for t in pending_texts]
             prompt = prompts_module.build_prompt(pending_texts, examples)
             db.store_retrievals(
-                [{"review_id": rid, "examples": ex} for rid, ex in zip(pending_ids, examples)],
-                prompt_version, db_path,
+                [{"review_id": rid, "examples": ex} for rid, ex in zip(pending_ids, examples, strict=True)],
+                prompt_version,
+                db_path,
             )
         else:
             prompt = prompts_module.build_prompt(pending_texts)
@@ -119,15 +120,15 @@ def classify_reviews(
         by_index = {c.review_index: c for c in batch_result.classifications}
 
         if set(by_index) != set(range(len(pending_texts))):
-            raise MalformedResponse(
-                f"Expected indices 0..{len(pending_texts) - 1}, got {sorted(by_index)}"
-            )
+            raise MalformedResponse(f"Expected indices 0..{len(pending_texts) - 1}, got {sorted(by_index)}")
 
-        for i, (rid, text) in enumerate(zip(pending_ids, pending_texts)):
+        for i, (rid, text) in enumerate(zip(pending_ids, pending_texts, strict=True)):
             c = by_index[i]
             record = {
-                "theme": c.theme.value, "sentiment": c.sentiment.value,
-                "severity": c.severity, "reasoning": c.reasoning,
+                "theme": c.theme.value,
+                "sentiment": c.sentiment.value,
+                "severity": c.severity,
+                "reasoning": c.reasoning,
             }
             set_cached(prompt_version, text, record, db_path)
             results.append({"review_id": rid, **record})
@@ -169,11 +170,20 @@ def _store_classifications(result_df: pd.DataFrame, prompt_version: str, db_path
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
             [
                 (
-                    r["review_id"], prompt_version, r["theme"], r["sentiment"], r["severity"], r.get("reasoning"),
-                    json.dumps({
-                        "theme": r["theme"], "sentiment": r["sentiment"],
-                        "severity": r["severity"], "reasoning": r.get("reasoning"),
-                    }),
+                    r["review_id"],
+                    prompt_version,
+                    r["theme"],
+                    r["sentiment"],
+                    r["severity"],
+                    r.get("reasoning"),
+                    json.dumps(
+                        {
+                            "theme": r["theme"],
+                            "sentiment": r["sentiment"],
+                            "severity": r["severity"],
+                            "reasoning": r.get("reasoning"),
+                        }
+                    ),
                 )
                 for r in result_df.to_dict("records")
             ],

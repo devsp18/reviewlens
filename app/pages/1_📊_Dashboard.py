@@ -12,9 +12,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from reviewlens import db
 from reviewlens.classify import classify_reviews
+from reviewlens.config import settings
 
 st.set_page_config(page_title="ReviewLens - Dashboard", page_icon="🔎", layout="wide")
 st.title("Dashboard")
+if settings.demo_mode:
+    st.caption("Demo Mode - showing precomputed results, classification is disabled to avoid spending API credits.")
 
 db.init_db()
 reviews = db.all_reviews()
@@ -29,26 +32,27 @@ prompt_version = st.sidebar.selectbox("Prompt version", ["v1", "v2"])
 app_reviews = reviews[reviews["app_name"] == app_name]
 
 with db.get_connection() as conn:
-    classified = pd.read_sql(
-        "SELECT * FROM classifications WHERE prompt_version = ?", conn, params=(prompt_version,)
-    )
+    classified = pd.read_sql("SELECT * FROM classifications WHERE prompt_version = ?", conn, params=(prompt_version,))
 
 merged = app_reviews.merge(classified, left_on="id", right_on="review_id", how="left")
 unclassified_count = merged["theme"].isna().sum()
 
 col1, col2 = st.columns([3, 1])
 with col1:
-    st.caption(f"{len(app_reviews)} reviews for {app_name} - {len(app_reviews) - unclassified_count} classified with {prompt_version}")
+    st.caption(
+        f"{len(app_reviews)} reviews for {app_name} - {len(app_reviews) - unclassified_count} classified with {prompt_version}"
+    )
 with col2:
-    run = st.button(f"Classify {unclassified_count} remaining", disabled=unclassified_count == 0)
+    run = st.button(
+        f"Classify {unclassified_count} remaining",
+        disabled=unclassified_count == 0 or settings.demo_mode,
+    )
 
-if run:
+if run and not settings.demo_mode:
     progress_bar = st.progress(0.0)
     status = st.empty()
     start = time.time()
-    to_classify = app_reviews[app_reviews["id"].isin(
-        merged.loc[merged["theme"].isna(), "id"]
-    )]
+    to_classify = app_reviews[app_reviews["id"].isin(merged.loc[merged["theme"].isna(), "id"])]
 
     def on_progress(done: int, total: int) -> None:
         elapsed = time.time() - start

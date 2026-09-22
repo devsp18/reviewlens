@@ -42,8 +42,7 @@ def build_prompt(reviews: list[str]) -> str:
     theme_block = "\n".join(f"- {name}: {definition}" for name, definition in THEME_DEFINITIONS.items())
     sentiments = ", ".join(SENTIMENT_VALUES)
     examples_block = "\n".join(
-        f'Review: "{ex["text"]}"\n'
-        f'-> theme={ex["theme"]}, sentiment={ex["sentiment"]}, severity={ex["severity"]}'
+        f'Review: "{ex["text"]}"\n-> theme={ex["theme"]}, sentiment={ex["sentiment"]}, severity={ex["severity"]}'
         for ex in FEW_SHOT_EXAMPLES
     )
     numbered = "\n".join(f"{i}. {text}" for i, text in enumerate(reviews))

@@ -10,10 +10,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from reviewlens import db
 from reviewlens.cluster import build_pain_points
+from reviewlens.config import settings
 from reviewlens.prioritize import score_pain_points
 
 st.set_page_config(page_title="ReviewLens - Backlog", page_icon="🔎", layout="wide")
 st.title("Feature Backlog")
+if settings.demo_mode:
+    st.caption("Demo Mode - showing precomputed pain points, rebuilding is disabled to avoid spending API credits.")
 
 db.init_db()
 reviews = db.all_reviews()
@@ -35,7 +38,11 @@ weights = {"frequency": w_freq, "severity": w_sev, "trend": w_trend, "reach": w_
 
 pain_points = db.load_pain_points(app_id, prompt_version)
 
-if st.sidebar.button("Rebuild pain points" if not pain_points.empty else "Build pain points", type="primary"):
+build_clicked = st.sidebar.button(
+    "Rebuild pain points" if not pain_points.empty else "Build pain points",
+    type="primary", disabled=settings.demo_mode,
+)
+if build_clicked and not settings.demo_mode:
     with st.spinner("Clustering reviews and writing pain-point summaries with Gemini..."):
         pain_points = build_pain_points(app_id, prompt_version)
     st.rerun()
@@ -81,8 +88,10 @@ with col1:
     st.download_button("Export CSV", csv_bytes, file_name=f"{app_id}_backlog.csv", mime="text/csv")
 with col2:
     st.download_button(
-        "Export Markdown (PRD)", to_markdown(scored),
-        file_name=f"{app_id}_backlog.md", mime="text/markdown",
+        "Export Markdown (PRD)",
+        to_markdown(scored),
+        file_name=f"{app_id}_backlog.md",
+        mime="text/markdown",
     )
 
 st.caption(
@@ -100,8 +109,8 @@ for rank, row in enumerate(scored.itertuples(), start=1):
         with score_col:
             st.metric("Priority", f"{row.priority_score:.0f}")
 
-        trend_arrow = "📈" if row.last_30_count > row.prev_30_count else (
-            "📉" if row.last_30_count < row.prev_30_count else "➡️"
+        trend_arrow = (
+            "📈" if row.last_30_count > row.prev_30_count else ("📉" if row.last_30_count < row.prev_30_count else "➡️")
         )
         st.write(row.summary)
         st.caption(

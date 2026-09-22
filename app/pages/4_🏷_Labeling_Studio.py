@@ -71,7 +71,9 @@ if mode == "Label Reviews":
         with cols[i % 3]:
             selected = st.session_state["pending_theme"] == theme
             if shortcut_button(
-                theme, shortcut=theme_keys[i], key=f"theme_{theme}",
+                theme,
+                shortcut=theme_keys[i],
+                key=f"theme_{theme}",
                 type="primary" if selected else "secondary",
             ):
                 st.session_state["pending_theme"] = theme
@@ -115,7 +117,8 @@ else:
         classified = pd.read_sql(
             "SELECT c.*, r.app_id, r.cleaned_text FROM classifications c "
             "JOIN reviews r ON r.id = c.review_id WHERE r.app_id = ?",
-            conn, params=(app_id,),
+            conn,
+            params=(app_id,),
         )
 
     if classified.empty:

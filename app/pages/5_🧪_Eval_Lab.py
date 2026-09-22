@@ -37,9 +37,7 @@ if not prompt_results:
     st.warning("results/eval_results.json exists but has no scored prompt versions. Re-run scripts/evaluate.py.")
     st.stop()
 
-st.caption(
-    f"{results['n_labeled_reviews']} human-labeled reviews - generated {results['generated_at']}"
-)
+st.caption(f"{results['n_labeled_reviews']} human-labeled reviews - generated {results['generated_at']}")
 
 # --- accuracy comparison ---
 rows = []
@@ -65,9 +63,16 @@ with col2:
 r = prompt_results[version]
 labels = r[f"{axis}_labels"]
 matrix = r[f"{axis}_confusion_matrix"]
-heatmap = go.Figure(data=go.Heatmap(
-    z=matrix, x=labels, y=labels, colorscale="Blues", text=matrix, texttemplate="%{text}",
-))
+heatmap = go.Figure(
+    data=go.Heatmap(
+        z=matrix,
+        x=labels,
+        y=labels,
+        colorscale="Blues",
+        text=matrix,
+        texttemplate="%{text}",
+    )
+)
 heatmap.update_layout(xaxis_title="Predicted", yaxis_title="True", height=500)
 st.plotly_chart(heatmap, width="stretch")
 

@@ -5,6 +5,8 @@ exclude a set of review_ids (a held-out k-fold) from the index entirely, so
 a review can never be retrieved as its own (or its fold-mate's) example.
 """
 
+import contextlib
+
 import chromadb
 import pandas as pd
 from google.genai import types
@@ -28,7 +30,7 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     """Embed a list of documents independently (not concatenated) via Gemini."""
     vectors: list[list[float]] = []
     for start in range(0, len(texts), EMBED_BATCH_SIZE):
-        chunk = texts[start:start + EMBED_BATCH_SIZE]
+        chunk = texts[start : start + EMBED_BATCH_SIZE]
         contents = [types.Content(parts=[types.Part(text=t)]) for t in chunk]
         vectors.extend(_embed_chunk(contents))
     return vectors
@@ -54,10 +56,8 @@ def build_index(
     pool = labeled_df[~labeled_df["review_id"].isin(exclude_review_ids)]
 
     client = get_chroma_client(persist_dir)
-    try:
+    with contextlib.suppress(chromadb.errors.NotFoundError):
         client.delete_collection(collection_name)
-    except chromadb.errors.NotFoundError:
-        pass
     collection = client.create_collection(collection_name)
 
     if pool.empty:
@@ -68,7 +68,7 @@ def build_index(
         ids=[str(rid) for rid in pool["review_id"]],
         embeddings=embeddings,
         documents=pool["text"].tolist(),
-        metadatas=[{"theme": t, "sentiment": s} for t, s in zip(pool["theme"], pool["sentiment"])],
+        metadatas=[{"theme": t, "sentiment": s} for t, s in zip(pool["theme"], pool["sentiment"], strict=True)],
     )
     return collection
 
@@ -82,7 +82,7 @@ def retrieve(query_text: str, collection: chromadb.Collection, k: int = 3) -> li
     result = collection.query(query_embeddings=[query_embedding], n_results=n_results)
 
     examples = []
-    for doc, meta, dist in zip(result["documents"][0], result["metadatas"][0], result["distances"][0]):
+    for doc, meta, dist in zip(result["documents"][0], result["metadatas"][0], result["distances"][0], strict=True):
         examples.append({"text": doc, "theme": meta["theme"], "sentiment": meta["sentiment"], "distance": dist})
     return examples
 

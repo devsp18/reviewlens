@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS llm_cache (
 
 @contextmanager
 def get_connection(db_path: Path | None = None):
-    path = db_path or settings.db_path
+    path = db_path or settings.effective_db_path
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     try:
@@ -107,8 +107,18 @@ def _migrate(conn: sqlite3.Connection) -> None:
 def upsert_reviews(df: pd.DataFrame, db_path: Path | None = None) -> int:
     """Insert cleaned reviews, skipping any (app_id, review_id) already stored. Returns rows inserted."""
     columns = [
-        "app_id", "app_name", "review_id", "user_name", "rating", "thumbs_up",
-        "text", "cleaned_text", "language", "review_date", "app_version", "source",
+        "app_id",
+        "app_name",
+        "review_id",
+        "user_name",
+        "rating",
+        "thumbs_up",
+        "text",
+        "cleaned_text",
+        "language",
+        "review_date",
+        "app_version",
+        "source",
     ]
     records = df[columns].to_dict("records")
 
@@ -124,7 +134,9 @@ def upsert_reviews(df: pd.DataFrame, db_path: Path | None = None) -> int:
 
 def review_counts_by_app(db_path: Path | None = None) -> pd.DataFrame:
     with get_connection(db_path) as conn:
-        return pd.read_sql("SELECT app_id, app_name, COUNT(*) AS review_count FROM reviews GROUP BY app_id, app_name", conn)
+        return pd.read_sql(
+            "SELECT app_id, app_name, COUNT(*) AS review_count FROM reviews GROUP BY app_id, app_name", conn
+        )
 
 
 def sample_reviews(n: int = 5, db_path: Path | None = None) -> pd.DataFrame:
@@ -151,9 +163,19 @@ def store_pain_points(records: list[dict], app_id: str, prompt_version: str, db_
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             [
                 (
-                    app_id, prompt_version, r["theme"], r["cluster_label"], r["title"], r["summary"],
-                    r["next_step"], r["review_count"], r["weighted_severity"], r["last_30_count"],
-                    r["prev_30_count"], r["reach_sum"], json.dumps(r["example_quotes"]),
+                    app_id,
+                    prompt_version,
+                    r["theme"],
+                    r["cluster_label"],
+                    r["title"],
+                    r["summary"],
+                    r["next_step"],
+                    r["review_count"],
+                    r["weighted_severity"],
+                    r["last_30_count"],
+                    r["prev_30_count"],
+                    r["reach_sum"],
+                    json.dumps(r["example_quotes"]),
                     json.dumps(r["example_review_ids"]),
                 )
                 for r in records
@@ -166,7 +188,8 @@ def load_pain_points(app_id: str, prompt_version: str, db_path: Path | None = No
     with get_connection(db_path) as conn:
         return pd.read_sql(
             "SELECT * FROM pain_points WHERE app_id = ? AND prompt_version = ?",
-            conn, params=(app_id, prompt_version),
+            conn,
+            params=(app_id, prompt_version),
         )
 
 

@@ -25,9 +25,7 @@ def main() -> None:
 
     parts = [g.sample(n=min(per_group, len(g)), random_state=42) for _, g in groups]
     sample = pd.concat(parts, ignore_index=True)
-    sample = sample.sample(n=min(SAMPLE_SIZE, len(sample)), random_state=42).sort_values(
-        ["app_id", "review_date"]
-    )
+    sample = sample.sample(n=min(SAMPLE_SIZE, len(sample)), random_state=42).sort_values(["app_id", "review_date"])
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     sample.to_csv(OUT_PATH, index=False)

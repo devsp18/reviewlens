@@ -76,23 +76,35 @@ def fetch_app_reviews(
 
     if not collected:
         return pd.DataFrame(
-            columns=["app_id", "app_name", "review_id", "user_name", "rating",
-                     "thumbs_up", "text", "review_date", "app_version", "source"]
+            columns=[
+                "app_id",
+                "app_name",
+                "review_id",
+                "user_name",
+                "rating",
+                "thumbs_up",
+                "text",
+                "review_date",
+                "app_version",
+                "source",
+            ]
         )
 
     df = pd.DataFrame(collected)
-    return pd.DataFrame({
-        "app_id": app_id,
-        "app_name": app_name,
-        "review_id": df["reviewId"],
-        "user_name": df["userName"],
-        "rating": df["score"],
-        "thumbs_up": df["thumbsUpCount"].fillna(0).astype(int),
-        "text": df["content"].fillna(""),
-        "review_date": df["at"],
-        "app_version": df.get("reviewCreatedVersion"),
-        "source": "scrape",
-    })
+    return pd.DataFrame(
+        {
+            "app_id": app_id,
+            "app_name": app_name,
+            "review_id": df["reviewId"],
+            "user_name": df["userName"],
+            "rating": df["score"],
+            "thumbs_up": df["thumbsUpCount"].fillna(0).astype(int),
+            "text": df["content"].fillna(""),
+            "review_date": df["at"],
+            "app_version": df.get("reviewCreatedVersion"),
+            "source": "scrape",
+        }
+    )
 
 
 def fetch_and_store(app_id: str, app_name: str, count: int = 10000) -> int:

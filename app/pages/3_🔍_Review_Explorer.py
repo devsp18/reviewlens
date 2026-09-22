@@ -30,7 +30,10 @@ with col1:
 with col2:
     rating_filter = st.selectbox("Rating", ["All"] + sorted(reviews["rating"].unique().tolist(), reverse=True))
 with col3:
-    prompt_version = st.selectbox("Classified with", ["Any"] + sorted(classifications["prompt_version"].unique()) if not classifications.empty else ["Any"])
+    prompt_version = st.selectbox(
+        "Classified with",
+        ["Any"] + sorted(classifications["prompt_version"].unique()) if not classifications.empty else ["Any"],
+    )
 with col4:
     theme_options = ["All"]
     if not classifications.empty:
@@ -54,8 +57,11 @@ if prompt_version != "Any" and not classifications.empty:
         filtered = filtered[filtered["theme"] == theme_filter]
 elif not classifications.empty:
     filtered = filtered.merge(
-        classifications.drop_duplicates("review_id"), left_on="id", right_on="review_id",
-        how="left", suffixes=("", "_cls"),
+        classifications.drop_duplicates("review_id"),
+        left_on="id",
+        right_on="review_id",
+        how="left",
+        suffixes=("", "_cls"),
     )
     if theme_filter != "All":
         filtered = filtered[filtered["theme"] == theme_filter]

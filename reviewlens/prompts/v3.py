@@ -18,7 +18,7 @@ def build_prompt(reviews: list[str], retrieved_examples: list[list[dict]] | None
     sentiments = ", ".join(SENTIMENT_VALUES)
 
     blocks = []
-    for i, (text, examples) in enumerate(zip(reviews, retrieved_examples)):
+    for i, (text, examples) in enumerate(zip(reviews, retrieved_examples, strict=True)):
         if examples:
             examples_block = "\n".join(
                 f'  Similar labeled review: "{ex["text"]}" -> theme={ex["theme"]}, sentiment={ex["sentiment"]}'

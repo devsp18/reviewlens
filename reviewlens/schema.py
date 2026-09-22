@@ -1,11 +1,11 @@
 """Shared classification taxonomy and Pydantic schema for Gemini structured output."""
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class Theme(str, Enum):
+class Theme(StrEnum):
     PERFORMANCE_CRASHES = "Performance & Crashes"
     LOGIN_ACCOUNT = "Login & Account"
     PAYMENTS_BILLING = "Payments & Billing"
@@ -18,7 +18,7 @@ class Theme(str, Enum):
     OTHER = "Other"
 
 
-class Sentiment(str, Enum):
+class Sentiment(StrEnum):
     POSITIVE = "positive"
     NEUTRAL = "neutral"
     NEGATIVE = "negative"

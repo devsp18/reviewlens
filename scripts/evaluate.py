@@ -11,7 +11,7 @@ Usage:
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -63,7 +63,7 @@ def main() -> None:
         print("\nNo PM rankings found in data/labeled/pm_rankings.csv yet - skipping agreement metrics.")
 
     output = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "n_labeled_reviews": len(eval_df),
         "prompt_versions": all_results,
         "pm_agreement": pm_agreement,

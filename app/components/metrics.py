@@ -57,7 +57,13 @@ _CARD_TEMPLATE = """
 
 def animated_metric(label: str, value: float, suffix: str = "", accent: str = "#4F46E5", height: int = 110) -> None:
     import json
+
     html = _CARD_TEMPLATE.format(
-        label=label, value=value, suffix="", start="0", accent=accent, suffix_js=json.dumps(suffix),
+        label=label,
+        value=value,
+        suffix="",
+        start="0",
+        accent=accent,
+        suffix_js=json.dumps(suffix),
     )
     components.html(html, height=height)

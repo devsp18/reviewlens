@@ -1,6 +1,6 @@
 """Storage helpers for human labels (Labeling Studio) and PM pain-point rankings."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -31,13 +31,17 @@ def save_label(review_id: int, theme: str, sentiment: str, labeler: str, path: P
     """Upsert one human label, keyed by review_id (a re-label overwrites the prior one)."""
     labels = load_labels(path)
     labels = labels[labels["review_id"] != review_id]
-    new_row = pd.DataFrame([{
-        "review_id": review_id,
-        "theme": theme,
-        "sentiment": sentiment,
-        "labeler": labeler,
-        "labeled_at": datetime.now(timezone.utc).isoformat(),
-    }])
+    new_row = pd.DataFrame(
+        [
+            {
+                "review_id": review_id,
+                "theme": theme,
+                "sentiment": sentiment,
+                "labeler": labeler,
+                "labeled_at": datetime.now(UTC).isoformat(),
+            }
+        ]
+    )
     labels = pd.concat([labels, new_row], ignore_index=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     labels.to_csv(path, index=False)
@@ -55,23 +59,25 @@ def load_rankings(path: Path = PM_RANKINGS_PATH) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
-def save_ranking(reviewer: str, app_id: str, pain_point: str, rank: int, rating: int, path: Path = PM_RANKINGS_PATH) -> None:
+def save_ranking(
+    reviewer: str, app_id: str, pain_point: str, rank: int, rating: int, path: Path = PM_RANKINGS_PATH
+) -> None:
     """Upsert one reviewer's rank/rating for one pain point, keyed by (reviewer, app_id, pain_point)."""
     rankings = load_rankings(path)
-    mask = (
-        (rankings["reviewer"] == reviewer)
-        & (rankings["app_id"] == app_id)
-        & (rankings["pain_point"] == pain_point)
-    )
+    mask = (rankings["reviewer"] == reviewer) & (rankings["app_id"] == app_id) & (rankings["pain_point"] == pain_point)
     rankings = rankings[~mask]
-    new_row = pd.DataFrame([{
-        "reviewer": reviewer,
-        "app_id": app_id,
-        "pain_point": pain_point,
-        "rank": rank,
-        "rating": rating,
-        "ranked_at": datetime.now(timezone.utc).isoformat(),
-    }])
+    new_row = pd.DataFrame(
+        [
+            {
+                "reviewer": reviewer,
+                "app_id": app_id,
+                "pain_point": pain_point,
+                "rank": rank,
+                "rating": rating,
+                "ranked_at": datetime.now(UTC).isoformat(),
+            }
+        ]
+    )
     rankings = pd.concat([rankings, new_row], ignore_index=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     rankings.to_csv(path, index=False)

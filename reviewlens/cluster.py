@@ -75,7 +75,8 @@ def build_pain_points(
                       c.theme, c.sentiment, c.severity
                FROM classifications c JOIN reviews r ON r.id = c.review_id
                WHERE r.app_id = ? AND c.prompt_version = ? AND c.sentiment IN ('negative', 'neutral')""",
-            conn, params=(app_id, prompt_version),
+            conn,
+            params=(app_id, prompt_version),
         )
 
     if pool.empty:
@@ -99,20 +100,22 @@ def build_pain_points(
             texts = cluster_df["cleaned_text"].tolist()
             summary = _summarize_cluster(texts)
             quotes = cluster_df["cleaned_text"].sample(min(3, len(cluster_df)), random_state=42).tolist()
-            records.append({
-                "theme": theme,
-                "cluster_label": int(cluster_label),
-                "title": summary.title,
-                "summary": summary.summary,
-                "next_step": summary.next_step,
-                "review_count": len(cluster_df),
-                "weighted_severity": _weighted_severity(cluster_df),
-                "last_30_count": _count_in_window(cluster_df, 0, 30),
-                "prev_30_count": _count_in_window(cluster_df, 30, 60),
-                "reach_sum": int(cluster_df["thumbs_up"].sum()),
-                "example_quotes": quotes,
-                "example_review_ids": cluster_df["review_id"].tolist(),
-            })
+            records.append(
+                {
+                    "theme": theme,
+                    "cluster_label": int(cluster_label),
+                    "title": summary.title,
+                    "summary": summary.summary,
+                    "next_step": summary.next_step,
+                    "review_count": len(cluster_df),
+                    "weighted_severity": _weighted_severity(cluster_df),
+                    "last_30_count": _count_in_window(cluster_df, 0, 30),
+                    "prev_30_count": _count_in_window(cluster_df, 30, 60),
+                    "reach_sum": int(cluster_df["thumbs_up"].sum()),
+                    "example_quotes": quotes,
+                    "example_review_ids": cluster_df["review_id"].tolist(),
+                }
+            )
 
     db.store_pain_points(records, app_id, prompt_version, db_path)
     return db.load_pain_points(app_id, prompt_version, db_path)

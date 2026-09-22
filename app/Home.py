@@ -50,7 +50,9 @@ with col3:
 st.divider()
 
 if reviews.empty:
-    st.warning("No reviews yet. Run `python scripts/fetch_reviews.py --app <package_id> --name \"App Name\"` to get started.")
+    st.warning(
+        'No reviews yet. Run `python scripts/fetch_reviews.py --app <package_id> --name "App Name"` to get started.'
+    )
 else:
     st.subheader("Pick an app")
     summary = (
