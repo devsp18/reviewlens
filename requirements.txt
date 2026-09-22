@@ -2,6 +2,7 @@
 google-genai==2.25.0
 streamlit==1.64.0
 plotly==7.1.0
+streamlit-shortcuts==1.2.1
 
 # RAG / vector store
 chromadb==1.5.9
