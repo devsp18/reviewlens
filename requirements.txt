@@ -1,0 +1,29 @@
+# Core
+google-genai==2.25.0
+streamlit==1.64.0
+plotly==7.1.0
+
+# RAG / vector store
+chromadb==1.5.9
+
+# Storage / config
+pydantic==2.13.5
+pydantic-settings==2.15.0
+python-dotenv==1.2.3
+
+# Data ingestion
+google-play-scraper==1.2.7
+pandas==3.0.6
+numpy==2.5.3
+
+# Clustering
+scikit-learn==1.9.1
+hdbscan==0.8.44
+
+# Reliability
+tenacity==9.1.4
+
+# Quality
+pytest==9.1.1
+ruff==0.16.8
+pre-commit==4.6.2

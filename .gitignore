@@ -1,0 +1,26 @@
+# Secrets
+.env
+.streamlit/secrets.toml
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Data / runtime artifacts
+*.db
+*.sqlite
+*.sqlite3
+chroma/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Local project brief (not for public repo)
+CLAUDE.md
