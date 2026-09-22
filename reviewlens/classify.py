@@ -8,17 +8,11 @@ from collections.abc import Callable
 
 import pandas as pd
 from google import genai
-from google.genai import errors as genai_errors
 from google.genai import types
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from reviewlens import db
 from reviewlens.config import settings
+from reviewlens.gemini_retry import gemini_retry
 from reviewlens.schema import BatchClassification
 
 BATCH_SIZE = 20
@@ -58,12 +52,7 @@ def set_cached(prompt_version: str, text: str, response: dict, db_path=None) -> 
         conn.commit()
 
 
-@retry(
-    retry=retry_if_exception_type((MalformedResponse, genai_errors.ServerError)),
-    stop=stop_after_attempt(7),
-    wait=wait_exponential(multiplier=2, min=2, max=60),
-    reraise=True,
-)
+@gemini_retry(extra_exception_types=(MalformedResponse,))
 def _call_gemini(prompt: str) -> BatchClassification:
     client = get_client()
     resp = client.models.generate_content(

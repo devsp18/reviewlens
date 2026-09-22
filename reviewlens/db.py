@@ -49,6 +49,26 @@ CREATE TABLE IF NOT EXISTS retrievals (
     UNIQUE(review_id, prompt_version)
 );
 
+CREATE TABLE IF NOT EXISTS pain_points (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    app_id TEXT NOT NULL,
+    prompt_version TEXT NOT NULL,
+    theme TEXT NOT NULL,
+    cluster_label INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    next_step TEXT NOT NULL,
+    review_count INTEGER NOT NULL,
+    weighted_severity REAL NOT NULL,
+    last_30_count INTEGER NOT NULL,
+    prev_30_count INTEGER NOT NULL,
+    reach_sum INTEGER NOT NULL,
+    example_quotes TEXT NOT NULL,
+    example_review_ids TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(app_id, prompt_version, theme, cluster_label)
+);
+
 CREATE TABLE IF NOT EXISTS llm_cache (
     cache_key TEXT PRIMARY KEY,
     response TEXT NOT NULL,
@@ -105,6 +125,39 @@ def sample_reviews(n: int = 5, db_path: Path | None = None) -> pd.DataFrame:
 def all_reviews(db_path: Path | None = None) -> pd.DataFrame:
     with get_connection(db_path) as conn:
         return pd.read_sql("SELECT * FROM reviews", conn)
+
+
+def store_pain_points(records: list[dict], app_id: str, prompt_version: str, db_path: Path | None = None) -> None:
+    """records need: theme, cluster_label, title, summary, next_step, review_count,
+    weighted_severity, last_30_count, prev_30_count, reach_sum, example_quotes (list),
+    example_review_ids (list)."""
+    with get_connection(db_path) as conn:
+        conn.execute("DELETE FROM pain_points WHERE app_id = ? AND prompt_version = ?", (app_id, prompt_version))
+        conn.executemany(
+            """INSERT INTO pain_points
+               (app_id, prompt_version, theme, cluster_label, title, summary, next_step,
+                review_count, weighted_severity, last_30_count, prev_30_count, reach_sum,
+                example_quotes, example_review_ids)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            [
+                (
+                    app_id, prompt_version, r["theme"], r["cluster_label"], r["title"], r["summary"],
+                    r["next_step"], r["review_count"], r["weighted_severity"], r["last_30_count"],
+                    r["prev_30_count"], r["reach_sum"], json.dumps(r["example_quotes"]),
+                    json.dumps(r["example_review_ids"]),
+                )
+                for r in records
+            ],
+        )
+        conn.commit()
+
+
+def load_pain_points(app_id: str, prompt_version: str, db_path: Path | None = None) -> pd.DataFrame:
+    with get_connection(db_path) as conn:
+        return pd.read_sql(
+            "SELECT * FROM pain_points WHERE app_id = ? AND prompt_version = ?",
+            conn, params=(app_id, prompt_version),
+        )
 
 
 def store_retrievals(records: list[dict], prompt_version: str, db_path: Path | None = None) -> None:

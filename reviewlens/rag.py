@@ -7,28 +7,17 @@ a review can never be retrieved as its own (or its fold-mate's) example.
 
 import chromadb
 import pandas as pd
-from google.genai import errors as genai_errors
 from google.genai import types
 from sklearn.model_selection import KFold
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from reviewlens.classify import get_client
 from reviewlens.config import settings
+from reviewlens.gemini_retry import gemini_retry
 
 EMBED_BATCH_SIZE = 100
 
 
-@retry(
-    retry=retry_if_exception_type(genai_errors.ServerError),
-    stop=stop_after_attempt(7),
-    wait=wait_exponential(multiplier=2, min=2, max=60),
-    reraise=True,
-)
+@gemini_retry()
 def _embed_chunk(contents: list[types.Content]) -> list[list[float]]:
     client = get_client()
     resp = client.models.embed_content(model=settings.gemini_embed_model, contents=contents)
