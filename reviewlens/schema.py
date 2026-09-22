@@ -48,6 +48,7 @@ class ReviewClassification(BaseModel):
     theme: Theme
     sentiment: Sentiment
     severity: int = Field(ge=1, le=5, description="1 = no issue, 5 = critical/blocking issue")
+    reasoning: str = Field(description="One sentence explaining the theme/sentiment/severity choice")
 
 
 class BatchClassification(BaseModel):

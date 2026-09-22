@@ -16,7 +16,8 @@ Themes (pick exactly one per review): {themes}
 Sentiment (pick exactly one per review): {sentiments}
 Severity: an integer from 1 (no issue) to 5 (critical, blocking issue)
 
-Return one classification per review, with review_index matching the number below.
+Return one classification per review, with review_index matching the number below
+and one sentence of reasoning for each.
 
 Reviews:
 {numbered}

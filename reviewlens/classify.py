@@ -125,7 +125,10 @@ def classify_reviews(
 
         for i, (rid, text) in enumerate(zip(pending_ids, pending_texts)):
             c = by_index[i]
-            record = {"theme": c.theme.value, "sentiment": c.sentiment.value, "severity": c.severity}
+            record = {
+                "theme": c.theme.value, "sentiment": c.sentiment.value,
+                "severity": c.severity, "reasoning": c.reasoning,
+            }
             set_cached(prompt_version, text, record, db_path)
             results.append({"review_id": rid, **record})
             unstored.append({"review_id": rid, **record})
@@ -152,20 +155,26 @@ def classify_reviews(
     flush_batch()
     flush_store()
 
-    return pd.DataFrame(results, columns=["review_id", "theme", "sentiment", "severity"])
+    return pd.DataFrame(results, columns=["review_id", "theme", "sentiment", "severity", "reasoning"])
 
 
 def _store_classifications(result_df: pd.DataFrame, prompt_version: str, db_path=None) -> None:
+    """`reasoning` may be missing on records read from a pre-reasoning cache entry."""
     if result_df.empty:
         return
     with db.get_connection(db_path) as conn:
         conn.executemany(
             """INSERT OR REPLACE INTO classifications
-               (review_id, prompt_version, theme, sentiment, severity, raw_response)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+               (review_id, prompt_version, theme, sentiment, severity, reasoning, raw_response)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
             [
-                (r["review_id"], prompt_version, r["theme"], r["sentiment"], r["severity"],
-                 json.dumps({"theme": r["theme"], "sentiment": r["sentiment"], "severity": r["severity"]}))
+                (
+                    r["review_id"], prompt_version, r["theme"], r["sentiment"], r["severity"], r.get("reasoning"),
+                    json.dumps({
+                        "theme": r["theme"], "sentiment": r["sentiment"],
+                        "severity": r["severity"], "reasoning": r.get("reasoning"),
+                    }),
+                )
                 for r in result_df.to_dict("records")
             ],
         )

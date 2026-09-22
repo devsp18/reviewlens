@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS classifications (
     theme TEXT,
     sentiment TEXT,
     severity INTEGER,
+    reasoning TEXT,
     raw_response TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(review_id, prompt_version)
@@ -91,7 +92,16 @@ def get_connection(db_path: Path | None = None):
 def init_db(db_path: Path | None = None) -> None:
     with get_connection(db_path) as conn:
         conn.executescript(SCHEMA)
+        _migrate(conn)
         conn.commit()
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Add columns to already-existing tables that predate them (SQLite's
+    CREATE TABLE IF NOT EXISTS won't retroactively add new columns)."""
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(classifications)").fetchall()]
+    if "reasoning" not in cols:
+        conn.execute("ALTER TABLE classifications ADD COLUMN reasoning TEXT")
 
 
 def upsert_reviews(df: pd.DataFrame, db_path: Path | None = None) -> int:

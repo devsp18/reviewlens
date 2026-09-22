@@ -41,7 +41,7 @@ Sentiment (pick exactly one): {sentiments}
 Severity: an integer from 1 (no issue, purely positive) to 5 (critical, blocking issue)
 
 Now classify these reviews. Return one classification per review, with review_index
-matching the number below.
+matching the number below and one sentence of reasoning for each.
 
 Reviews:
 {numbered}
