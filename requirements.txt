@@ -15,6 +15,8 @@ python-dotenv==1.2.3
 google-play-scraper==1.2.7
 pandas==3.0.6
 numpy==2.5.3
+langdetect==1.0.9
+emoji==2.16.0
 
 # Clustering
 scikit-learn==1.9.1
